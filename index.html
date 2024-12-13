@@ -89,7 +89,7 @@
 
 <body>
     <h1>Geospatial Visualization</h1>
-    <h3>Vinson Ramalingam</h3>
+    <h3>Teja Krishna Reddy Yarram</h3>
     <div id="tooltip"></div>
     <div class="container">
         <div class="map-container">
@@ -107,8 +107,8 @@
     </div>
 
     <script>
-        const MA_counties = "./data/towns.topojson";
-        const gini_index = "./data/gini_index.csv";
+        const MA_counties = "towns.topojson";
+        const gini_index = "gini_index.csv";
 
         const svgWidth = 800, svgHeight = 600; 
         const tooltip = d3.select("#tooltip");
@@ -123,6 +123,7 @@
             generateMapC(geojson, giniData, "#mapC", svgWidth, svgHeight);
         }).catch(error => console.error("Error loading data:", error));
 
+        // Map A: Population in 1980 with YlGnBu color palette
         function renderMapA(geojson, container) {
             const svg = d3.select(container).append("svg")
                 .attr("width", svgWidth).attr("height", svgHeight);
@@ -130,7 +131,7 @@
             const projection = d3.geoMercator().fitSize([svgWidth, svgHeight], geojson);
             const geoPath = d3.geoPath().projection(projection);
 
-            const colorScale = d3.scaleSequential(d3.interpolateRdPu) // Changed from YlGnBu to RdPu
+            const colorScale = d3.scaleSequential(d3.interpolateYlGnBu) // Changed to YlGnBu
                 .domain(d3.extent(geojson.features, d => d.properties.POP1980 || 0));
 
             svg.selectAll("path")
@@ -147,6 +148,7 @@
                 .on("mouseleave", () => tooltip.style("opacity", 0));
         }
 
+        // Map B: Population Change (1980 - 2010) with RdYlGn color palette
         function renderMapB(geojson, container) {
             const svg = d3.select(container).append("svg")
                 .attr("width", svgWidth).attr("height", svgHeight);
@@ -154,12 +156,10 @@
             const projection = d3.geoMercator().fitSize([svgWidth, svgHeight], geojson);
             const geoPath = d3.geoPath().projection(projection);
 
-            const colorScale = d3.scaleDiverging(d3.interpolateRdYlBu) // Changed from Spectral to RdYlBu
-                .domain([
-                    d3.min(geojson.features, d => d.properties.POP2010 - d.properties.POP1980),
-                    0,
-                    d3.max(geojson.features, d => d.properties.POP2010 - d.properties.POP1980)
-                ]);
+            const colorScale = d3.scaleDiverging(d3.interpolateRdYlGn) // Changed to RdYlGn
+                .domain([d3.min(geojson.features, d => d.properties.POP2010 - d.properties.POP1980),
+                         0,
+                         d3.max(geojson.features, d => d.properties.POP2010 - d.properties.POP1980)]);
 
             svg.selectAll("path")
                 .data(geojson.features)
@@ -184,6 +184,7 @@
                 .on("mouseleave", () => tooltip.style("opacity", 0));
         }
 
+        // Map C: Gini Index (2019) with Blues color palette
         function generateMapC(geojson, giniData, container, width, height) {
             const svg = d3.select(container).append("svg")
                 .attr("width", width).attr("height", height);
@@ -203,7 +204,7 @@
             const gini2019 = giniData.filter(d => d.year === "2019");
             const giniValues = gini2019.map(d => +d['Estimate!!Gini Index']);
 
-            const colorScale = d3.scaleSequential(d3.interpolateViridis) // Changed from YlOrRd to Viridis
+            const colorScale = d3.scaleSequential(d3.interpolateBlues) // Changed to Blues
                 .domain([d3.min(giniValues), d3.max(giniValues)]);
 
             svg.selectAll("path")
@@ -256,11 +257,6 @@
                     chartSVG.append("g")
                         .attr("transform", `translate(0,${chartHeight - chartMargin.bottom})`)
                         .call(d3.axisBottom(xScale).tickFormat(d3.format("d")))
-                        .selectAll("text")
-                        .style("text-anchor", "end")
-                        .attr("dx", "-0.8em")
-                        .attr("dy", "0.15em")
-                        .attr("transform", "rotate(-40)");
 
                     chartSVG.append("g")
                         .attr("transform", `translate(${chartMargin.left},0)`)
